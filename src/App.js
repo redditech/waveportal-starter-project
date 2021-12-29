@@ -11,7 +11,7 @@ const App = () => {
   /* 
   * A state variable to store the contract address after it is deployed
   */
- const contractAddress = "0x13F3C943Fd42d432FBEffb26c78A503E8Ee975C0"
+ const contractAddress = "0xC9Af4E56741f255743e8f4877d4cfa9971E910C2"
  const contractABI = abi.abi;
 
   const checkIfWalletIsConnected = async () => {

@@ -11,11 +11,19 @@ const App = () => {
   // state property to store all waves
   const [allWaves, setAllWaves] = useState([]);
 
+  // state variable to store the message
+  const [message, setMessage] = useState('');
+
   /* 
   * A state variable to store the contract address after it is deployed
   */
   const contractAddress = "0x67434A3854610f700a353dA9Ab6F28bf7bEc3593"
   const contractABI = abi.abi;
+
+  const onInputChange = (event) => {
+    const {value} = event.target;
+    setMessage(value);
+  }
 
   // method to get all waves from the contract
   const getAllWaves = async () => {
@@ -69,6 +77,7 @@ const App = () => {
     if (window.ethereum) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
+     
 
       wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
       wavePortalContract.on("NewWave", onNewWave);
@@ -107,6 +116,8 @@ const App = () => {
       } else {
         console.log("No authorized account found");
       }
+
+      
     } catch (error) {
       console.log(error);
     }
@@ -139,9 +150,11 @@ const App = () => {
   */
   useEffect(() => {
     checkIfWalletIsConnected();
-
-    getAllWaves();
   }, [])
+
+  useEffect(() => {
+    getAllWaves();
+  }, [currentAccount])
 
 
 
@@ -160,11 +173,17 @@ const App = () => {
         /*
         * Execute the actual wave from your smart contract
         */
-        const waveTxn = await wavePortalContract.wave("this is a message", { gasLimit: 300000 });
-        console.log("Mining... ", waveTxn.hash);
-
-        await waveTxn.wait();
-        console.log("Mined -- ", waveTxn.hash);
+        if (message.length >0) {
+          const waveTxn = await wavePortalContract.wave(message, { gasLimit: 300000 });
+          await waveTxn.wait();
+          console.log("Mining... ", waveTxn.hash);   
+          console.log("Mined -- ", waveTxn.hash);
+        } else {
+          console.log("Empty input. Try again.");
+        }
+        
+        
+        
 
         count = await wavePortalContract.getTotalWaves();
         console.log("Retrieved total wave count... ", count.toNumber());
@@ -188,9 +207,15 @@ const App = () => {
           I am Nissan and I am learning to code my first DApp so that's pretty cool right? Connect your Ethereum wallet and wave at me!
         </div>
 
-        <button className="waveButton" onClick={wave}>
-          Wave at Me
-        </button>
+        <form 
+        onSubmit={(event) => {
+          event.preventDefault();
+          wave();
+        }}
+        >
+          <input type="text" placeholder="Send me a message and wave!" value={message} onChange={onInputChange} />
+          <button type="submit" className="waveButton submit-wave-button">Wave at me</button>
+        </form>
 
         {
           /*
@@ -206,9 +231,9 @@ const App = () => {
         {allWaves.map((wave, index) => {
           return (
             <div key={index} style={{ backgroundColor: "OldLace", marginTop: "16px", padding: "8px" }}>
-              <div>Address: {wave.address}</div>
-              <div>Time: {wave.timestamp.toString()}</div>
-              <div>Message: {wave.message}</div>
+              <div className="sub-text">Address: {wave.address}</div>
+              <div className="sub-text">Time: {wave.timestamp.toString()}</div>
+              <div className="sub-text">Message: {wave.message}</div>
             </div>
           )
         })}
